@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PageController;
@@ -44,3 +45,14 @@ Route::middleware('auth:api')
                 );
         }
     );
+
+Route::middleware('auth:api')
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::apiResource('posts', Admin\PostController::class);
+        Route::apiResource('categories', Admin\CategoryController::class);
+        Route::apiResource('tags', Admin\TagController::class);
+        Route::apiResource('pages', Admin\PageController::class);
+        Route::post('markdown/preview', Admin\MarkdownPreviewController::class)->name('markdown.preview');
+    });

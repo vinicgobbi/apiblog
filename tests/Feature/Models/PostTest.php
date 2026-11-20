@@ -39,6 +39,7 @@ class PostTest extends TestCase
         $post = Post::factory()->published()->create(['published_at' => now()]);
 
         $this->assertTrue($post->isPublished());
+        $this->assertSame('published', $post->state());
         $this->assertSame(1, Post::published()->count());
     }
 
