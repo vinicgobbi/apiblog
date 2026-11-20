@@ -33,6 +33,16 @@ class PostTest extends TestCase
         $this->assertSame(1, Post::published()->count());
     }
 
+    public function test_post_published_at_the_current_second_is_already_published(): void
+    {
+        $this->freezeSecond();
+        $post = Post::factory()->published()->create(['published_at' => now()]);
+
+        $this->assertTrue($post->isPublished());
+        $this->assertSame('published', $post->state());
+        $this->assertSame(1, Post::published()->count());
+    }
+
     public function test_draft_with_publication_date_is_not_published(): void
     {
         $post = Post::factory()->draft()->create(['published_at' => now()->subDay()]);

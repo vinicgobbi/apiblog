@@ -48,12 +48,13 @@ class MakeSwaggerController extends Command
     protected function buildController($name, $controllerName)
     {
         $namespace = 'App\Http\Controllers'.$this->getExtraNamespace($name);
+        $imports = $this->getExtraNamespace($name) !== '' ? "\nuse App\\Http\\Controllers\\Controller;\n" : '';
 
         return <<<PHP
 <?php
 
 namespace {$namespace};
-
+{$imports}
 class {$controllerName} extends Controller
 {
     //

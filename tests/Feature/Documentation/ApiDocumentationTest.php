@@ -30,10 +30,28 @@ class ApiDocumentationTest extends TestCase
 
         $this->assertSame(config('app.name'), $docs['info']['title']);
         $this->assertSame(['type' => 'http', 'scheme' => 'bearer', 'bearerFormat' => 'JWT'], $docs['components']['securitySchemes']['bearerAuth']);
-        $this->assertEqualsCanonicalizing([
+        foreach ([
             '/auth/login', '/auth/refresh', '/auth/logout', '/auth/user',
             '/posts', '/posts/{slug}', '/posts/{slug}/comments', '/categories', '/categories/{slug}', '/tags', '/tags/{slug}', '/pages/{slug}',
-        ], array_keys($docs['paths']));
+            '/admin/posts', '/admin/posts/{id}', '/admin/categories', '/admin/categories/{id}',
+            '/admin/tags', '/admin/tags/{id}', '/admin/pages', '/admin/pages/{id}', '/admin/markdown/preview',
+            '/admin/media', '/admin/media/{id}',
+            '/admin/comments', '/admin/comments/counts', '/admin/comments/{id}',
+        ] as $path) {
+            $this->assertArrayHasKey($path, $docs['paths'], "{$path} não está documentado");
+        }
+    }
+
+    public function test_every_admin_operation_requires_bearer_token(): void
+    {
+        $adminPaths = array_filter($this->generateDocs()['paths'], fn (string $path): bool => str_starts_with($path, '/admin/'), ARRAY_FILTER_USE_KEY);
+
+        $this->assertNotEmpty($adminPaths);
+        foreach ($adminPaths as $path => $operations) {
+            foreach ($operations as $method => $operation) {
+                $this->assertSame([['bearerAuth' => []]], $operation['security'] ?? null, strtoupper($method)." {$path} deveria exigir bearer token");
+            }
+        }
     }
 
     public function test_public_endpoints_do_not_require_authentication(): void

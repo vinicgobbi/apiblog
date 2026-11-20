@@ -121,11 +121,50 @@ class Post extends Model
         );
     }
 
+    /**
+     * Posts publicados com data futura (agendados).
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function scheduled(Builder $query): void
+    {
+        $query->where('status', PostStatus::Published)->where('published_at', '>', now());
+    }
+
+    /**
+     * Busca no título e no resumo, tratando "%" e "_" digitados como texto.
+     * O caractere de escape é explícito para funcionar igual no MySQL e no SQLite.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function search(Builder $query, string $term): void
+    {
+        $pattern = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term).'%';
+
+        $query->where(fn (Builder $query) => $query
+            ->whereRaw("title LIKE ? ESCAPE '!'", [$pattern])
+            ->orWhereRaw("excerpt LIKE ? ESCAPE '!'", [$pattern]));
+    }
+
+    /**
+     * Situação do post para o leitor: "draft", "scheduled" ou "published".
+     */
+    public function state(): string
+    {
+        return match (true) {
+            $this->status === PostStatus::Draft => 'draft',
+            $this->isPublished() => 'published',
+            default => 'scheduled',
+        };
+    }
+
     public function isPublished(): bool
     {
         return $this->status === PostStatus::Published
             && $this->published_at !== null
-            && $this->published_at->isPast();
+            && ! $this->published_at->isFuture();
     }
 
     protected function markdownRendered(MarkdownRenderer $renderer): void
