@@ -30,7 +30,19 @@ class ApiDocumentationTest extends TestCase
 
         $this->assertSame(config('app.name'), $docs['info']['title']);
         $this->assertSame(['type' => 'http', 'scheme' => 'bearer', 'bearerFormat' => 'JWT'], $docs['components']['securitySchemes']['bearerAuth']);
-        $this->assertEqualsCanonicalizing(['/auth/login', '/auth/refresh', '/auth/logout', '/auth/user'], array_keys($docs['paths']));
+        $this->assertEqualsCanonicalizing([
+            '/auth/login', '/auth/refresh', '/auth/logout', '/auth/user',
+            '/posts', '/posts/{slug}', '/categories', '/categories/{slug}', '/tags', '/tags/{slug}', '/pages/{slug}',
+        ], array_keys($docs['paths']));
+    }
+
+    public function test_public_endpoints_do_not_require_authentication(): void
+    {
+        $paths = $this->generateDocs()['paths'];
+
+        foreach (['/posts', '/posts/{slug}', '/categories', '/tags', '/pages/{slug}'] as $path) {
+            $this->assertArrayNotHasKey('security', $paths[$path]['get'], "{$path} não deveria exigir autenticação");
+        }
     }
 
     public function test_documents_login_contract(): void
