@@ -32,7 +32,7 @@ class ApiDocumentationTest extends TestCase
         $this->assertSame(['type' => 'http', 'scheme' => 'bearer', 'bearerFormat' => 'JWT'], $docs['components']['securitySchemes']['bearerAuth']);
         $this->assertEqualsCanonicalizing([
             '/auth/login', '/auth/refresh', '/auth/logout', '/auth/user',
-            '/posts', '/posts/{slug}', '/categories', '/categories/{slug}', '/tags', '/tags/{slug}', '/pages/{slug}',
+            '/posts', '/posts/{slug}', '/posts/{slug}/comments', '/categories', '/categories/{slug}', '/tags', '/tags/{slug}', '/pages/{slug}',
         ], array_keys($docs['paths']));
     }
 
@@ -40,9 +40,11 @@ class ApiDocumentationTest extends TestCase
     {
         $paths = $this->generateDocs()['paths'];
 
-        foreach (['/posts', '/posts/{slug}', '/categories', '/tags', '/pages/{slug}'] as $path) {
+        foreach (['/posts', '/posts/{slug}', '/posts/{slug}/comments', '/categories', '/tags', '/pages/{slug}'] as $path) {
             $this->assertArrayNotHasKey('security', $paths[$path]['get'], "{$path} não deveria exigir autenticação");
         }
+
+        $this->assertArrayNotHasKey('security', $paths['/posts/{slug}/comments']['post']);
     }
 
     public function test_documents_login_contract(): void
