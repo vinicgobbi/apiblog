@@ -35,6 +35,7 @@ class ApiDocumentationTest extends TestCase
             '/posts', '/posts/{slug}', '/categories', '/categories/{slug}', '/tags', '/tags/{slug}', '/pages/{slug}',
             '/admin/posts', '/admin/posts/{id}', '/admin/categories', '/admin/categories/{id}',
             '/admin/tags', '/admin/tags/{id}', '/admin/pages', '/admin/pages/{id}', '/admin/markdown/preview',
+            '/admin/media', '/admin/media/{id}',
         ] as $path) {
             $this->assertArrayHasKey($path, $docs['paths'], "{$path} não está documentado");
         }
