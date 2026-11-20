@@ -11,15 +11,26 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Seed the application's database.
+     * Cria (ou atualiza) o administrador do blog a partir das variáveis
+     * ADMIN_NAME, ADMIN_EMAIL e ADMIN_PASSWORD.
+     *
+     * Para popular o banco com conteúdo de exemplo, rode separadamente:
+     * php artisan db:seed --class=DemoContentSeeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        /** @var array{name: string, email: ?string, password: ?string} $admin */
+        $admin = config('blog.admin');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        if (blank($admin['email']) || blank($admin['password'])) {
+            $this->command?->warn('ADMIN_EMAIL e ADMIN_PASSWORD não estão configurados: o administrador não foi criado.');
+
+            return;
+        }
+
+        User::updateOrCreate(
+            ['email' => $admin['email']],
+            ['name' => $admin['name'], 'password' => $admin['password']],
+        );
     }
 }
