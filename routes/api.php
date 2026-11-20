@@ -54,5 +54,6 @@ Route::middleware('auth:api')
         Route::apiResource('categories', Admin\CategoryController::class);
         Route::apiResource('tags', Admin\TagController::class);
         Route::apiResource('pages', Admin\PageController::class);
+        Route::apiResource('media', Admin\MediaController::class)->parameters(['media' => 'media']);
         Route::post('markdown/preview', Admin\MarkdownPreviewController::class)->name('markdown.preview');
     });
