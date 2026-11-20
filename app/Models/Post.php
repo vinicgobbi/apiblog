@@ -125,7 +125,7 @@ class Post extends Model
     {
         return $this->status === PostStatus::Published
             && $this->published_at !== null
-            && $this->published_at->isPast();
+            && ! $this->published_at->isFuture();
     }
 
     protected function markdownRendered(MarkdownRenderer $renderer): void
