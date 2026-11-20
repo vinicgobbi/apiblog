@@ -27,7 +27,7 @@ class PostController extends Controller
             ->with(['author:id,name', 'category', 'tags'])
             ->when($request->validated('tag'), fn (Builder $query, string $tag) => $query->whereRelation('tags', 'slug', $tag))
             ->when($request->validated('category'), fn (Builder $query, string $category) => $query->whereRelation('category', 'slug', $category))
-            ->when($request->validated('q'), fn (Builder $query, string $term) => $this->search($query, $term))
+            ->when($request->validated('q'), fn (Builder $query, string $term) => $query->search($term))
             ->latest('published_at')
             ->latest('id')
             ->paginate($request->perPage())
@@ -41,18 +41,5 @@ class PostController extends Controller
         abort_unless($post->isPublished(), 404);
 
         return new PostDetailResource($post->load(['author:id,name', 'category', 'tags']));
-    }
-
-    /**
-     * Busca no título e no resumo, tratando "%" e "_" digitados como texto.
-     * O caractere de escape é explícito para funcionar igual no MySQL e no SQLite.
-     */
-    private function search(Builder $query, string $term): void
-    {
-        $pattern = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term).'%';
-
-        $query->where(fn (Builder $query) => $query
-            ->whereRaw("title LIKE ? ESCAPE '!'", [$pattern])
-            ->orWhereRaw("excerpt LIKE ? ESCAPE '!'", [$pattern]));
     }
 }

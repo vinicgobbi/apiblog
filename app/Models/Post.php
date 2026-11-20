@@ -121,6 +121,22 @@ class Post extends Model
         );
     }
 
+    /**
+     * Busca no título e no resumo, tratando "%" e "_" digitados como texto.
+     * O caractere de escape é explícito para funcionar igual no MySQL e no SQLite.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function search(Builder $query, string $term): void
+    {
+        $pattern = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term).'%';
+
+        $query->where(fn (Builder $query) => $query
+            ->whereRaw("title LIKE ? ESCAPE '!'", [$pattern])
+            ->orWhereRaw("excerpt LIKE ? ESCAPE '!'", [$pattern]));
+    }
+
     public function isPublished(): bool
     {
         return $this->status === PostStatus::Published
