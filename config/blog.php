@@ -16,6 +16,50 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Rotas do front-end
+    |--------------------------------------------------------------------------
+    |
+    | Caminhos das páginas do front, usados para montar links (ex.: no RSS).
+    | Devem acompanhar as rotas definidas no blog-front.
+    |
+    */
+
+    'front_paths' => [
+        'post' => '/posts/{slug}',
+        'tag' => '/tags/{slug}',
+        'category' => '/categorias/{slug}',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Identidade do blog
+    |--------------------------------------------------------------------------
+    |
+    | Título e descrição exibidos nos leitores de RSS.
+    |
+    */
+
+    'title' => env('BLOG_TITLE', 'Blog'),
+
+    'description' => env('BLOG_DESCRIPTION', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Feeds RSS
+    |--------------------------------------------------------------------------
+    |
+    | Quantidade de posts por feed e tempo de cache do XML, em segundos. O
+    | cache é invalidado sempre que um post, tag ou categoria é alterado.
+    |
+    */
+
+    'feed' => [
+        'items' => 20,
+        'cache_ttl' => 3600,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Administrador
     |--------------------------------------------------------------------------
     |
