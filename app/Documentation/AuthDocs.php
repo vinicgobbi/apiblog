@@ -2,7 +2,11 @@
 
 namespace App\Documentation;
 
-use OpenApi\Attributes as OA;
+use OpenApi\Spec as OA;
+use OpenApi\Spec\Format;
+use OpenApi\Spec\MediaType\Json;
+use OpenApi\Spec\Security\Requirement;
+use OpenApi\Spec\Type;
 
 /**
  * Documentação dos endpoints de autenticação.
@@ -13,97 +17,90 @@ use OpenApi\Attributes as OA;
  */
 #[OA\Tag(name: 'Authentication', description: 'Documentação dos endpoints de autenticação')]
 #[OA\Schema(
-    schema: 'AuthToken',
+    component: 'AuthToken',
+    description: 'Token de acesso JWT retornado pelo login e pelo refresh.',
     properties: [
-        new OA\Property(property: 'access_token', type: 'string'),
-        new OA\Property(property: 'token_type', type: 'string', example: 'bearer'),
-        new OA\Property(property: 'expires_in', type: 'integer', description: 'Validade do token em segundos', example: 7200),
-    ]
+        'access_token' => Type::String,
+        'token_type' => new OA\Schema(type: Type::String, example: 'bearer'),
+        'expires_in' => new OA\Schema(type: Type::Integer, description: 'Validade do token em segundos', example: 7200),
+    ],
 )]
 final class AuthDocs
 {
-    #[OA\Post(
+    #[OA\Operation\Post(
         path: '/auth/login',
         summary: 'Autenticação do administrador',
         description: 'Limitado a 5 tentativas por minuto.',
         tags: ['Authentication'],
         requestBody: new OA\RequestBody(
             required: true,
-            content: new OA\JsonContent(
+            content: new Json(
                 required: ['email', 'password'],
                 properties: [
-                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'admin@blog.local'),
-                    new OA\Property(property: 'password', type: 'string', example: 'senha123'),
-                ]
-            )
+                    'email' => new OA\Schema(type: Type::String, format: Format::Email, example: 'admin@blog.local'),
+                    'password' => new OA\Schema(type: Type::String, example: 'senha123'),
+                ],
+            ),
         ),
         responses: [
-            new OA\Response(response: 200, description: 'Autenticado com sucesso', content: new OA\JsonContent(ref: '#/components/schemas/AuthToken')),
+            new OA\Response(response: 200, description: 'Autenticado com sucesso', content: new Json(ref: '#/components/schemas/AuthToken')),
             new OA\Response(response: 401, description: 'Credenciais inválidas'),
             new OA\Response(response: 422, description: 'Dados inválidos'),
             new OA\Response(response: 429, description: 'Muitas tentativas'),
-        ]
+        ],
     )]
     public function login(): void {}
 
-    #[OA\Post(
+    #[OA\Operation\Post(
         path: '/auth/refresh',
         summary: 'Troca o token atual por um novo',
         description: 'Aceita tokens de acesso expirados dentro da janela de refresh (JWT_REFRESH_TTL). O token antigo é invalidado.',
         tags: ['Authentication'],
-        security: [['bearerAuth' => []]],
+        security: [new Requirement(scheme: 'bearerAuth')],
         responses: [
-            new OA\Response(response: 200, description: 'Token atualizado com sucesso', content: new OA\JsonContent(ref: '#/components/schemas/AuthToken')),
+            new OA\Response(response: 200, description: 'Token atualizado com sucesso', content: new Json(ref: '#/components/schemas/AuthToken')),
             new OA\Response(response: 401, description: 'Token ausente, inválido ou fora da janela de refresh'),
-        ]
+        ],
     )]
     public function refresh(): void {}
 
-    #[OA\Post(
+    #[OA\Operation\Post(
         path: '/auth/logout',
         summary: 'Encerra a sessão invalidando o token',
         tags: ['Authentication'],
-        security: [['bearerAuth' => []]],
+        security: [new Requirement(scheme: 'bearerAuth')],
         responses: [
             new OA\Response(
                 response: 200,
                 description: 'Logout realizado com sucesso',
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: 'message', type: 'string', example: 'Logout realizado com sucesso.'),
-                    ]
-                )
+                content: new Json(properties: [
+                    'message' => new OA\Schema(type: Type::String, example: 'Logout realizado com sucesso.'),
+                ]),
             ),
             new OA\Response(response: 401, description: 'Não autenticado'),
-        ]
+        ],
     )]
     public function logout(): void {}
 
-    #[OA\Get(
+    #[OA\Operation\Get(
         path: '/auth/user',
         summary: 'Retorna os dados do usuário autenticado',
         tags: ['Authentication'],
-        security: [['bearerAuth' => []]],
+        security: [new Requirement(scheme: 'bearerAuth')],
         responses: [
             new OA\Response(
                 response: 200,
                 description: 'Dados do usuário',
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(
-                            property: 'data',
-                            properties: [
-                                new OA\Property(property: 'id', type: 'integer', example: 1),
-                                new OA\Property(property: 'name', type: 'string', example: 'Administrador'),
-                                new OA\Property(property: 'email', type: 'string', format: 'email', example: 'admin@blog.local'),
-                            ],
-                            type: 'object'
-                        ),
-                    ]
-                )
+                content: new Json(properties: [
+                    'data' => new OA\Schema(type: Type::Object, properties: [
+                        'id' => new OA\Schema(type: Type::Integer, example: 1),
+                        'name' => new OA\Schema(type: Type::String, example: 'Administrador'),
+                        'email' => new OA\Schema(type: Type::String, format: Format::Email, example: 'admin@blog.local'),
+                    ]),
+                ]),
             ),
             new OA\Response(response: 401, description: 'Não autenticado'),
-        ]
+        ],
     )]
     public function user(): void {}
 }

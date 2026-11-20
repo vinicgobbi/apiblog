@@ -106,6 +106,17 @@ return [
 
         'scanOptions' => [
             /**
+             * The swagger-php mode: `classic`, `hybrid` or `spec`.
+             *
+             * O projeto usa o modo `spec`, que lê apenas os atributos `OpenApi\Spec`
+             * (os atributos `OpenApi\Attributes` estão deprecated desde o swagger-php 7.0).
+             * No modo `spec`, `processors`, `analyser` e `analysis` não se aplicam.
+             *
+             * @link https://zircote.github.io/swagger-php/guide/modes.html
+             */
+            'mode' => env('L5_SWAGGER_SCAN_MODE', 'spec'),
+
+            /**
              * Configuration for default processors. Allows to pass processors configuration to swagger-php.
              *
              * @link https://zircote.github.io/swagger-php/reference/processors.html

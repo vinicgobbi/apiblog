@@ -2,7 +2,7 @@
 
 namespace App\Documentation;
 
-use OpenApi\Attributes as OA;
+use OpenApi\Spec as OA;
 
 /**
  * Metadados globais do OpenAPI (info, server, esquema de segurança).
@@ -16,13 +16,13 @@ use OpenApi\Attributes as OA;
 )]
 #[OA\Server(
     url: \APP_URL,
-    description: 'URL da aplicação'
+    description: 'URL da aplicação',
 )]
-#[OA\SecurityScheme(
+#[OA\Security\Scheme(
     securityScheme: 'bearerAuth',
-    type: 'http',
+    type: OA\SchemeType::Http,
     scheme: 'bearer',
-    bearerFormat: 'JWT'
+    bearerFormat: 'JWT',
 )]
 final class ApiDocumentation
 {
