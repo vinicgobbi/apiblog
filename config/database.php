@@ -114,21 +114,6 @@ return [
             'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
-        'sqlsrv_secondary' => [
-            'driver' => 'sqlsrv',
-            'url' => env('DB_URL'),
-            'host' => env('DB_SECONDARY_HOST', 'localhost'),
-            'port' => env('DB_SECONDARY_PORT', '1433'),
-            'database' => env('DB_SECONDARY_DATABASE', 'laravel'),
-            'username' => env('DB_SECONDARY_USERNAME', 'root'),
-            'password' => env('DB_SECONDARY_PASSWORD', ''),
-            'charset' => env('DB_SECONDARY_CHARSET', 'utf8'),
-            'prefix' => '',
-            'prefix_indexes' => true,
-            // 'encrypt' => env('DB_SECONDARY_ENCRYPT', 'yes'),
-            'trust_server_certificate' => env('DB_SECONDARY_TRUST_SERVER_CERTIFICATE', 'false'),
-        ],
-
     ],
 
     /*
