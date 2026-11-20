@@ -71,7 +71,7 @@ PHP;
 
 namespace {$namespace};
 
-use OpenApi\Attributes as OA;
+use OpenApi\Spec as OA;
 
 /**
  * Documentação dos endpoints do {$controllerName}.
