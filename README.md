@@ -52,6 +52,7 @@ php artisan migrate --seed
 | `DB_CONNECTION` | `mysql` ou `mariadb` |
 | `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Conexão com o banco |
 | `FRONT_URL` | URL pública do front. É a origem liberada no CORS e a base dos links do RSS |
+| `BLOG_TITLE`, `BLOG_DESCRIPTION` | Título e descrição do blog exibidos nos leitores de RSS |
 | `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Dados do administrador criado pelo seeder |
 | `JWT_TTL`, `JWT_REFRESH_TTL` | Validade do token e do refresh, em minutos |
 | `L5_SWAGGER_GENERATE_ALWAYS` | Regera a documentação Swagger a cada requisição (use `true` só em desenvolvimento) |
@@ -67,6 +68,16 @@ composer dev
 ```
 
 A API fica disponível em `http://localhost:8000/api` e a documentação Swagger em `http://localhost:8000/api/documentation`.
+
+### Feeds RSS
+
+| URL | Conteúdo |
+|---|---|
+| `/feed` | Últimos 20 posts publicados |
+| `/feed/tags/{slug}` | Posts de uma tag |
+| `/feed/categories/{slug}` | Posts de uma categoria |
+
+Os feeds ficam em cache por até 1 hora. O cache é invalidado automaticamente quando um post, tag ou categoria é alterado (e pelo `php artisan posts:rerender`).
 
 ## Testes e qualidade
 
