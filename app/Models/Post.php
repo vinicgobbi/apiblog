@@ -10,12 +10,14 @@ use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * O autor (user_id) não é mass assignable: deve ser definido pelo
@@ -92,6 +94,18 @@ class Post extends Model
         $query->where('status', PostStatus::Published)
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now());
+    }
+
+    /**
+     * URL pública da imagem de capa (arquivo no disco "public").
+     *
+     * @return Attribute<?string, never>
+     */
+    protected function coverImageUrl(): Attribute
+    {
+        return Attribute::get(
+            fn (): ?string => $this->cover_image_path ? Storage::disk('public')->url($this->cover_image_path) : null,
+        );
     }
 
     public function isPublished(): bool
