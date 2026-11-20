@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PostCommentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\TagController;
 use Illuminate\Http\Request;
@@ -19,6 +20,8 @@ Route::get('/', function (Request $request) {
 
 Route::get('posts', [PostController::class, 'index'])->name('posts.index');
 Route::get('posts/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+Route::get('posts/{post:slug}/comments', [PostCommentController::class, 'index'])->name('posts.comments.index');
+Route::post('posts/{post:slug}/comments', [PostCommentController::class, 'store'])->middleware('throttle:3,1')->name('posts.comments.store');
 Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
 Route::get('tags', [TagController::class, 'index'])->name('tags.index');
