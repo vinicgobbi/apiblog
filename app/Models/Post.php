@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\PostStatus;
 use App\Models\Concerns\HasSlug;
 use App\Models\Concerns\RendersMarkdown;
+use App\Services\FeedCache;
 use App\Services\MarkdownRenderer;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -35,6 +36,18 @@ class Post extends Model
     protected $attributes = [
         'status' => PostStatus::Draft->value,
     ];
+
+    /**
+     * Alterações refletem nos feeds RSS, então o cache deles é invalidado.
+     */
+    protected static function booted(): void
+    {
+        $flushFeeds = fn () => app(FeedCache::class)->flush();
+
+        static::saved($flushFeeds);
+        static::deleted($flushFeeds);
+        static::restored($flushFeeds);
+    }
 
     /**
      * Get the attributes that should be cast.

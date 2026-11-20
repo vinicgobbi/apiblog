@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Page;
 use App\Models\Post;
+use App\Services\FeedCache;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -13,10 +14,12 @@ use Illuminate\Database\Eloquent\Model;
 #[Description('Renderiza novamente o HTML de todos os posts (inclusive na lixeira) e páginas')]
 class RerenderMarkdown extends Command
 {
-    public function handle(): int
+    public function handle(FeedCache $feedCache): int
     {
         $posts = $this->rerender(Post::withTrashed()->lazyById());
         $pages = $this->rerender(Page::query()->lazyById());
+
+        $feedCache->flush();
 
         $this->info("{$posts} post(s) e {$pages} página(s) renderizados novamente.");
 
