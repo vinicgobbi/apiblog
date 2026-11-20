@@ -23,15 +23,19 @@ class AuthRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'username' => 'required|string',
+            'email' => 'required|string|email|max:255',
             'password' => 'required|string',
         ];
     }
 
-    public function messages()
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
     {
         return [
-            'username.required' => 'O nome de usuário é obrigatório',
+            'email.required' => 'O e-mail é obrigatório',
+            'email.email' => 'Informe um e-mail válido',
             'password.required' => 'A senha é obrigatória',
         ];
     }

@@ -14,7 +14,8 @@ Route::get('/', function (Request $request) {
 });
 
 Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthController::class, 'login'])->name('login');
+    Route::post('login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login');
+    Route::post('refresh', [AuthController::class, 'refresh'])->middleware('throttle:10,1')->name('auth.refresh');
 });
 
 Route::middleware('auth:api')
@@ -26,7 +27,6 @@ Route::middleware('auth:api')
                 ->group(
                     function () {
                         Route::post('logout', 'logout')->name('logout');
-                        Route::post('refresh', 'refresh')->name('refresh');
                         Route::get('user', 'user')->name('user');
                     }
                 );
