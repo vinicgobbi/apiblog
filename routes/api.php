@@ -58,5 +58,7 @@ Route::middleware('auth:api')
         Route::apiResource('tags', Admin\TagController::class);
         Route::apiResource('pages', Admin\PageController::class);
         Route::apiResource('media', Admin\MediaController::class)->parameters(['media' => 'media']);
+        Route::get('comments/counts', [Admin\CommentController::class, 'counts'])->name('comments.counts');
+        Route::apiResource('comments', Admin\CommentController::class)->except(['store']);
         Route::post('markdown/preview', Admin\MarkdownPreviewController::class)->name('markdown.preview');
     });
