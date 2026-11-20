@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\PostStatus;
 use App\Models\Concerns\HasSlug;
+use App\Models\Concerns\RendersMarkdown;
+use App\Services\MarkdownRenderer;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -23,7 +25,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Post extends Model
 {
     /** @use HasFactory<PostFactory> */
-    use HasFactory, HasSlug, SoftDeletes;
+    use HasFactory, HasSlug, RendersMarkdown, SoftDeletes;
 
     /**
      * @var array<string, mixed>
@@ -97,6 +99,11 @@ class Post extends Model
         return $this->status === PostStatus::Published
             && $this->published_at !== null
             && $this->published_at->isPast();
+    }
+
+    protected function markdownRendered(MarkdownRenderer $renderer): void
+    {
+        $this->reading_time = $renderer->readingTime($this->body_html);
     }
 
     protected function slugSourceAttribute(): string

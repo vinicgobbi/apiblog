@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasSlug;
+use App\Models\Concerns\RendersMarkdown;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 class Page extends Model
 {
     /** @use HasFactory<PageFactory> */
-    use HasFactory, HasSlug;
+    use HasFactory, HasSlug, RendersMarkdown;
 
     /**
      * Get the attributes that should be cast.
