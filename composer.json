@@ -42,13 +42,15 @@
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
-            "@php artisan jwt:secret --force"
+            "@php artisan jwt:secret --force",
+            "@php artisan storage:link"
         ],
         "setup-prod": [
             "composer install --no-dev --optimize-autoloader",
             "@php -r \"file_exists('.env') || copy('.env.prod.example', '.env');\"",
             "@php artisan key:generate",
-            "@php artisan jwt:secret --force"
+            "@php artisan jwt:secret --force",
+            "@php artisan storage:link"
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
