@@ -45,6 +45,18 @@ Depois, edite o `.env` (principalmente banco e admin) e rode as migrations com o
 php artisan migrate --seed
 ```
 
+### Criando o administrador
+
+Também é possível criar o administrador (ou redefinir a senha de um existente) sem guardar a senha no `.env`:
+
+```sh
+php artisan admin:create
+# ou, informando nome e e-mail:
+php artisan admin:create --name="Vinícius" --email=admin@exemplo.com
+```
+
+A senha é sempre pedida de forma oculta, com confirmação e pelo menos 8 caracteres; ela nunca é passada como opção, para não ficar no histórico do shell. Se o e-mail já existir, o comando pergunta antes de redefinir o nome e a senha.
+
 ## Variáveis de ambiente do blog
 
 | Variável | Descrição |
@@ -53,7 +65,7 @@ php artisan migrate --seed
 | `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Conexão com o banco |
 | `FRONT_URL` | URL pública do front. É a origem liberada no CORS e a base dos links do RSS |
 | `BLOG_TITLE`, `BLOG_DESCRIPTION` | Título e descrição do blog exibidos nos leitores de RSS |
-| `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Dados do administrador criado pelo seeder |
+| `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Dados do administrador criado pelo seeder (alternativa: `php artisan admin:create`) |
 | `JWT_TTL`, `JWT_REFRESH_TTL` | Validade do token e do refresh, em minutos |
 | `L5_SWAGGER_GENERATE_ALWAYS` | Regera a documentação Swagger a cada requisição (use `true` só em desenvolvimento) |
 
