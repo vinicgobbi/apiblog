@@ -22,8 +22,9 @@ class PageResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'body_html' => $this->body_html,
-            'updated_at' => $this->updated_at?->toIso8601String(),
+            'icon' => $this->icon,
+            'body_html' => $this->whenHas('body_html'),
+            'updated_at' => $this->whenHas('updated_at', fn () => $this->updated_at?->toIso8601String()),
         ];
     }
 }

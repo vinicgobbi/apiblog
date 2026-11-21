@@ -49,6 +49,7 @@ class DemoContentSeeder extends Seeder
         Page::factory()->published()->create([
             'title' => 'Sobre',
             'slug' => 'sobre',
+            'icon' => 'person',
         ]);
     }
 }

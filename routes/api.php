@@ -28,6 +28,7 @@ Route::middleware(SetPublicCacheHeaders::class)->group(function () {
     Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
     Route::get('tags', [TagController::class, 'index'])->name('tags.index');
     Route::get('tags/{tag:slug}', [TagController::class, 'show'])->name('tags.show');
+    Route::get('pages', [PageController::class, 'index'])->name('pages.index');
     Route::get('pages/{page:slug}', [PageController::class, 'show'])->name('pages.show');
 });
 

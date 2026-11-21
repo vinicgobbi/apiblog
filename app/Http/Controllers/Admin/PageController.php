@@ -18,7 +18,7 @@ class PageController extends Controller
     public function index(): AnonymousResourceCollection
     {
         $pages = Page::query()
-            ->select(['id', 'title', 'slug', 'is_published', 'created_at', 'updated_at'])
+            ->select(['id', 'title', 'slug', 'icon', 'is_published', 'created_at', 'updated_at'])
             ->orderBy('title')
             ->get();
 

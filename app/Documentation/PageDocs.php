@@ -17,17 +17,32 @@ use OpenApi\Spec\Type;
 #[OA\Tag(name: 'Pages', description: 'Páginas estáticas (ex.: Sobre)')]
 #[OA\Schema(
     component: 'Page',
-    description: 'Página estática publicada.',
+    description: 'Página estática publicada. body_html e updated_at só aparecem no detalhe.',
     properties: [
         'id' => Type::Integer,
         'title' => Type::String,
         'slug' => Type::String,
+        'icon' => new OA\Schema(type: Type::String, description: 'Nome do ícone do Bootstrap Icons, sem o prefixo "bi-" (ex.: person)'),
         'body_html' => new OA\Schema(type: Type::String, description: 'Corpo em HTML já renderizado e sanitizado'),
         'updated_at' => Format::DateTime,
     ],
 )]
 final class PageDocs
 {
+    #[OA\Operation\Get(
+        path: '/pages',
+        summary: 'Lista as páginas publicadas (para o menu do blog)',
+        tags: ['Pages'],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Páginas publicadas em ordem de criação, sem o corpo',
+                content: new Json(properties: ['data' => new OA\Schema(type: Type::Array, items: new OA\Schema(ref: '#/components/schemas/Page'))]),
+            ),
+        ],
+    )]
+    public function index(): void {}
+
     #[OA\Operation\Get(
         path: '/pages/{slug}',
         summary: 'Retorna uma página publicada',

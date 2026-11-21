@@ -42,6 +42,7 @@ class PageControllerTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.*.id', [$draft->id, $published->id])
             ->assertJsonPath('data.*.is_published', [false, true])
+            ->assertJsonPath('data.*.icon', [$draft->icon, $published->icon])
             ->assertJsonMissingPath('data.0.body_markdown');
     }
 
@@ -59,9 +60,10 @@ class PageControllerTest extends TestCase
     public function test_store_creates_page_with_rendered_html(): void
     {
         $this->actingAs($this->admin, 'api')
-            ->postJson('/api/admin/pages', ['title' => 'Sobre mim', 'body_markdown' => '**Oi**', 'is_published' => true])
+            ->postJson('/api/admin/pages', ['title' => 'Sobre mim', 'icon' => 'person', 'body_markdown' => '**Oi**', 'is_published' => true])
             ->assertCreated()
             ->assertJsonPath('data.slug', 'sobre-mim')
+            ->assertJsonPath('data.icon', 'person')
             ->assertJsonPath('data.body_html', "<p><strong>Oi</strong></p>\n");
 
         $this->getJson('/api/pages/sobre-mim')->assertOk();
@@ -76,6 +78,7 @@ class PageControllerTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors([
                 'title' => 'O título é obrigatório',
+                'icon' => 'Escolha um ícone para a página',
                 'body_markdown' => 'O conteúdo é obrigatório',
                 'slug' => 'Já existe uma página com este slug',
                 'is_published' => 'O campo publicado deve ser verdadeiro ou falso',
@@ -100,7 +103,7 @@ class PageControllerTest extends TestCase
     public function test_store_rejects_reserved_slug(string $slug): void
     {
         $this->actingAs($this->admin, 'api')
-            ->postJson('/api/admin/pages', ['title' => 'Página', 'slug' => $slug, 'body_markdown' => 'Texto'])
+            ->postJson('/api/admin/pages', ['title' => 'Página', 'slug' => $slug, 'icon' => 'person', 'body_markdown' => 'Texto'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['slug' => 'Este endereço é usado pelo blog. Escolha outro slug']);
 
@@ -110,7 +113,7 @@ class PageControllerTest extends TestCase
     public function test_store_rejects_title_that_generates_reserved_slug(): void
     {
         $this->actingAs($this->admin, 'api')
-            ->postJson('/api/admin/pages', ['title' => 'Busca', 'body_markdown' => 'Texto'])
+            ->postJson('/api/admin/pages', ['title' => 'Busca', 'icon' => 'person', 'body_markdown' => 'Texto'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['slug' => 'Este endereço é usado pelo blog. Escolha outro slug']);
     }
@@ -120,7 +123,7 @@ class PageControllerTest extends TestCase
         $page = Page::factory()->create(['slug' => 'sobre']);
 
         $this->actingAs($this->admin, 'api')
-            ->putJson("/api/admin/pages/{$page->id}", ['title' => 'Sobre', 'slug' => 'Admin', 'body_markdown' => 'Texto'])
+            ->putJson("/api/admin/pages/{$page->id}", ['title' => 'Sobre', 'slug' => 'Admin', 'icon' => 'person', 'body_markdown' => 'Texto'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['slug']);
 
@@ -132,7 +135,7 @@ class PageControllerTest extends TestCase
         $page = Page::factory()->create(['slug' => 'sobre']);
 
         $this->actingAs($this->admin, 'api')
-            ->putJson("/api/admin/pages/{$page->id}", ['title' => 'Posts', 'slug' => null, 'body_markdown' => 'Texto'])
+            ->putJson("/api/admin/pages/{$page->id}", ['title' => 'Posts', 'slug' => null, 'icon' => 'person', 'body_markdown' => 'Texto'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['slug']);
     }
@@ -142,7 +145,7 @@ class PageControllerTest extends TestCase
         $page = Page::factory()->create(['slug' => 'sobre']);
 
         $this->actingAs($this->admin, 'api')
-            ->putJson("/api/admin/pages/{$page->id}", ['title' => 'Tags', 'body_markdown' => 'Texto'])
+            ->putJson("/api/admin/pages/{$page->id}", ['title' => 'Tags', 'icon' => 'person', 'body_markdown' => 'Texto'])
             ->assertOk()
             ->assertJsonPath('data.slug', 'sobre');
     }
@@ -150,7 +153,7 @@ class PageControllerTest extends TestCase
     public function test_slugs_that_only_contain_a_reserved_word_are_accepted(): void
     {
         $this->actingAs($this->admin, 'api')
-            ->postJson('/api/admin/pages', ['title' => 'Como usar a busca', 'body_markdown' => 'Texto'])
+            ->postJson('/api/admin/pages', ['title' => 'Como usar a busca', 'icon' => 'person', 'body_markdown' => 'Texto'])
             ->assertCreated()
             ->assertJsonPath('data.slug', 'como-usar-a-busca');
     }
@@ -160,11 +163,48 @@ class PageControllerTest extends TestCase
         $page = Page::factory()->published()->create(['slug' => 'sobre']);
 
         $this->actingAs($this->admin, 'api')
-            ->putJson("/api/admin/pages/{$page->id}", ['title' => 'Sobre', 'slug' => 'sobre', 'body_markdown' => 'Texto', 'is_published' => false])
+            ->putJson("/api/admin/pages/{$page->id}", ['title' => 'Sobre', 'slug' => 'sobre', 'icon' => 'person', 'body_markdown' => 'Texto', 'is_published' => false])
             ->assertOk()
             ->assertJsonPath('data.is_published', false);
 
         $this->getJson('/api/pages/sobre')->assertNotFound();
+    }
+
+    /**
+     * @return array<string, array{mixed}>
+     */
+    public static function invalidIcons(): array
+    {
+        return [
+            'com prefixo e espaço' => ['bi bi-person'],
+            'classe extra' => ['person text-danger'],
+            'maiúsculas' => ['Person'],
+            'hífen no fim' => ['person-'],
+            'não string' => [['person']],
+        ];
+    }
+
+    #[DataProvider('invalidIcons')]
+    public function test_store_rejects_icon_that_is_not_a_bootstrap_icon_name(mixed $icon): void
+    {
+        $this->actingAs($this->admin, 'api')
+            ->postJson('/api/admin/pages', ['title' => 'Página', 'icon' => $icon, 'body_markdown' => 'Texto'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['icon']);
+
+        $this->assertDatabaseCount('pages', 0);
+    }
+
+    public function test_update_changes_icon(): void
+    {
+        $page = Page::factory()->create(['slug' => 'sobre', 'icon' => 'person']);
+
+        $this->actingAs($this->admin, 'api')
+            ->putJson("/api/admin/pages/{$page->id}", ['title' => 'Sobre', 'icon' => 'person-badge', 'body_markdown' => 'Texto'])
+            ->assertOk()
+            ->assertJsonPath('data.icon', 'person-badge');
+
+        $this->assertSame('person-badge', $page->fresh()->icon);
     }
 
     public function test_destroy_deletes_page(): void

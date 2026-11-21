@@ -19,10 +19,11 @@ use OpenApi\Spec\Type;
 #[OA\Schema(
     component: 'AdminPageInput',
     description: 'Dados para criar ou editar uma página.',
-    required: ['title', 'body_markdown'],
+    required: ['title', 'icon', 'body_markdown'],
     properties: [
         'title' => new OA\Schema(type: Type::String, maxLength: 255),
         'slug' => new OA\Schema(type: Type::String, maxLength: 255, description: 'Opcional; gerado a partir do título e normalizado. Não pode ser uma rota do front (admin, busca, categorias, posts, tags)'),
+        'icon' => new OA\Schema(type: Type::String, maxLength: 64, pattern: '^[a-z0-9]+(-[a-z0-9]+)*$', description: 'Nome do ícone do Bootstrap Icons, sem o prefixo "bi-" (ex.: person)'),
         'body_markdown' => new OA\Schema(type: Type::String, maxLength: 200000),
         'is_published' => new OA\Schema(type: Type::Boolean, default: false),
     ],
@@ -34,6 +35,7 @@ use OpenApi\Spec\Type;
         'id' => Type::Integer,
         'title' => Type::String,
         'slug' => Type::String,
+        'icon' => Type::String,
         'body_markdown' => Type::String,
         'body_html' => Type::String,
         'is_published' => Type::Boolean,
