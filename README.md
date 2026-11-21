@@ -106,6 +106,18 @@ php artisan test     # suíte de testes
 vendor/bin/pint      # formatação de código
 ```
 
+## Commits e versionamento
+
+Os commits seguem o [Conventional Commits](https://www.conventionalcommits.org/pt-br/v1.0.0/). A configuração do [Commitizen](https://commitizen-tools.github.io/commitizen/) fica no `.cz.toml`:
+
+```sh
+pipx install commitizen   # uma vez
+cz commit                 # monta a mensagem do commit
+cz bump                   # nova versão: atualiza config/app.php, gera o CHANGELOG.md e cria a tag vX.Y.Z
+```
+
+A versão atual aparece em `GET /api` e no rodapé do blog.
+
 ## Roadmap
 
 O desenvolvimento é organizado por [issues e marcos](https://github.com/vinicgobbi/blog-api/milestones):
