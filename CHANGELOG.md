@@ -1,3 +1,9 @@
+## v0.1.1 (2026-11-21)
+
+### Fix
+
+- **deploy**: mantém resources/views para o view:cache do servidor
+
 ## v0.1.0 (2026-11-21)
 
 ### Feat
