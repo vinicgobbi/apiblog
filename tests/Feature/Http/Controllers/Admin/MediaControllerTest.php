@@ -9,14 +9,16 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Tests\BuildsTestImages;
 use Tests\TestCase;
 
 class MediaControllerTest extends TestCase
 {
+    use BuildsTestImages;
     use RefreshDatabase;
 
     /**
-     * GIF 1×1 válido (o ambiente não tem a extensão GD para gerar imagens).
+     * GIF 1×1 válido.
      */
     private const string GIF_1X1 = "GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;";
 
@@ -64,12 +66,40 @@ class MediaControllerTest extends TestCase
             ->assertJsonPath('data.markdown', '![Pôr do sol]('.Storage::disk('public')->url($media->path).')');
     }
 
-    public function test_accepts_gif(): void
+    public function test_accepts_gif_and_stores_it_unchanged(): void
     {
         $this->actingAs($this->admin, 'api')
             ->postJson('/api/admin/media', ['file' => $this->upload('anim.gif', self::GIF_1X1)])
             ->assertCreated()
             ->assertJsonPath('data.mime_type', 'image/gif');
+
+        $this->assertSame(self::GIF_1X1, Storage::disk('public')->get(Media::sole()->path));
+    }
+
+    public function test_upload_strips_exif_and_applies_orientation(): void
+    {
+        $this->actingAs($this->admin, 'api')
+            ->postJson('/api/admin/media', ['file' => $this->upload('celular.jpg', $this->jpegWithExif(40, 20, orientation: 6))])
+            ->assertCreated()
+            ->assertJsonPath('data.mime_type', 'image/jpeg')
+            ->assertJsonPath('data.width', 20)
+            ->assertJsonPath('data.height', 40);
+
+        $media = Media::sole();
+        $stored = Storage::disk('public')->get($media->path);
+        $this->assertStringNotContainsString(self::METADATA_MARKER, $stored);
+        $this->assertStringNotContainsString("Exif\0\0", $stored);
+        $this->assertSame(strlen($stored), $media->size);
+    }
+
+    public function test_upload_strips_metadata_from_png_and_webp(): void
+    {
+        $this->actingAs($this->admin, 'api')->postJson('/api/admin/media', ['file' => $this->upload('a.png', $this->pngWithTextChunks())])->assertCreated();
+        $this->actingAs($this->admin, 'api')->postJson('/api/admin/media', ['file' => $this->upload('b.webp', $this->webpWithExifChunk())])->assertCreated();
+
+        foreach (Media::all() as $media) {
+            $this->assertStringNotContainsString(self::METADATA_MARKER, Storage::disk('public')->get($media->path));
+        }
     }
 
     public function test_brackets_in_alt_text_are_escaped_in_markdown_snippet(): void
