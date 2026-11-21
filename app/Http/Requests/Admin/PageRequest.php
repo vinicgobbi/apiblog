@@ -30,6 +30,7 @@ class PageRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('pages', 'slug')->ignore($this->route('page'))],
+            'icon' => ['required', 'string', 'max:64', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/'],
             'body_markdown' => 'required|string|max:200000',
             'is_published' => 'boolean',
         ];
@@ -83,6 +84,9 @@ class PageRequest extends FormRequest
             'title.required' => 'O título é obrigatório',
             'title.max' => 'O título pode ter no máximo :max caracteres',
             'slug.unique' => 'Já existe uma página com este slug',
+            'icon.required' => 'Escolha um ícone para a página',
+            'icon.max' => 'Ícone inválido',
+            'icon.regex' => 'Ícone inválido',
             'body_markdown.required' => 'O conteúdo é obrigatório',
             'is_published.boolean' => 'O campo publicado deve ser verdadeiro ou falso',
         ];

@@ -24,6 +24,7 @@ class PageResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
+            'icon' => $this->icon,
             'body_markdown' => $this->whenHas('body_markdown'),
             'body_html' => $this->whenHas('body_html'),
             'is_published' => $this->is_published,

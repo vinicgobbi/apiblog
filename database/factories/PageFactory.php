@@ -19,6 +19,7 @@ class PageFactory extends Factory
     {
         return [
             'title' => rtrim(fake()->unique()->sentence(3), '.'),
+            'icon' => fake()->randomElement(['person', 'info-circle', 'envelope', 'briefcase', 'book']),
             'body_markdown' => implode("\n\n", fake()->paragraphs(3)),
             'is_published' => false,
         ];
