@@ -83,7 +83,6 @@ class FeedController extends Controller
     {
         return response($xml, 200, [
             'Content-Type' => 'application/rss+xml; charset=UTF-8',
-            'Cache-Control' => 'public, max-age=300',
         ]);
     }
 }

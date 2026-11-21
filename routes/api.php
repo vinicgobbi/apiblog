@@ -7,6 +7,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PostCommentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\TagController;
+use App\Http\Middleware\SetPublicCacheHeaders;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,22 +20,25 @@ Route::get('/', function (Request $request) {
     ]);
 });
 
-Route::get('posts', [PostController::class, 'index'])->name('posts.index');
-Route::get('posts/{post:slug}', [PostController::class, 'show'])->name('posts.show');
-Route::get('posts/{post:slug}/comments', [PostCommentController::class, 'index'])->name('posts.comments.index');
+Route::middleware(SetPublicCacheHeaders::class)->group(function () {
+    Route::get('posts', [PostController::class, 'index'])->name('posts.index');
+    Route::get('posts/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+    Route::get('posts/{post:slug}/comments', [PostCommentController::class, 'index'])->name('posts.comments.index');
+    Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
+    Route::get('tags', [TagController::class, 'index'])->name('tags.index');
+    Route::get('tags/{tag:slug}', [TagController::class, 'show'])->name('tags.show');
+    Route::get('pages/{page:slug}', [PageController::class, 'show'])->name('pages.show');
+});
+
 Route::post('posts/{post:slug}/comments', [PostCommentController::class, 'store'])->middleware('throttle:3,1')->name('posts.comments.store');
-Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
-Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
-Route::get('tags', [TagController::class, 'index'])->name('tags.index');
-Route::get('tags/{tag:slug}', [TagController::class, 'show'])->name('tags.show');
-Route::get('pages/{page:slug}', [PageController::class, 'show'])->name('pages.show');
 
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login');
     Route::post('refresh', [AuthController::class, 'refresh'])->middleware('throttle:10,1')->name('auth.refresh');
 });
 
-Route::middleware('auth:api')
+Route::middleware(['auth:api', 'cache.headers:no_store;private'])
     ->group(
         function () {
             Route::prefix('auth')
@@ -49,7 +53,7 @@ Route::middleware('auth:api')
         }
     );
 
-Route::middleware('auth:api')
+Route::middleware(['auth:api', 'cache.headers:no_store;private'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
