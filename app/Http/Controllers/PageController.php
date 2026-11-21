@@ -4,9 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\PageResource;
 use App\Models\Page;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class PageController extends Controller
 {
+    /**
+     * Páginas publicadas, sem o corpo, na ordem de criação. Usado no menu do blog.
+     */
+    public function index(): AnonymousResourceCollection
+    {
+        $pages = Page::query()
+            ->published()
+            ->select(['id', 'title', 'slug', 'icon'])
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get();
+
+        return PageResource::collection($pages);
+    }
+
     public function show(Page $page): PageResource
     {
         abort_unless($page->is_published, 404);
