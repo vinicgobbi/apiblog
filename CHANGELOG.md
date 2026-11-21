@@ -1,3 +1,10 @@
+## v0.2.0 (2026-11-21)
+
+### Feat
+
+- **pages**: adiciona listagem pública das páginas publicadas
+- **pages**: adiciona ícone obrigatório às páginas
+
 ## v0.1.1 (2026-11-21)
 
 ### Fix
