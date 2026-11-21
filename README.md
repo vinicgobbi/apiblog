@@ -79,6 +79,12 @@ A API fica disponível em `http://localhost:8000/api` e a documentação Swagger
 
 Os feeds ficam em cache por até 1 hora. O cache é invalidado automaticamente quando um post, tag ou categoria é alterado (e pelo `php artisan posts:rerender`).
 
+### Cache HTTP
+
+Os `GET` públicos (`/api/posts`, `/api/categories`, `/api/tags`, `/api/pages` e os comentários de um post) respondem com `Cache-Control: public, max-age=60` e `ETag`; uma requisição com `If-None-Match` igual recebe `304`. Os feeds usam `max-age=300`. Ajuste os tempos com `HTTP_CACHE_MAX_AGE` e `FEED_HTTP_CACHE_MAX_AGE`. Mantenha valores curtos: um post recém-publicado pode levar esse tempo para aparecer para quem já tinha a resposta em cache.
+
+As rotas `/api/admin/*` e `/api/auth/*` nunca são cacheáveis (`no-store, private`).
+
 ## Testes e qualidade
 
 Os testes usam SQLite em memória e ignoram o `.env`. Toda a configuração deles fica no `phpunit.xml`.

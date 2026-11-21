@@ -60,6 +60,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Cache HTTP
+    |--------------------------------------------------------------------------
+    |
+    | max-age, em segundos, enviado no Cache-Control das rotas públicas de
+    | leitura. Mantenha valores curtos: um post recém-publicado pode levar até
+    | esse tempo para aparecer para quem já tinha a resposta em cache.
+    |
+    */
+
+    'http_cache' => [
+        'api' => (int) env('HTTP_CACHE_MAX_AGE', 60),
+        'feed' => (int) env('FEED_HTTP_CACHE_MAX_AGE', 300),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Administrador
     |--------------------------------------------------------------------------
     |
