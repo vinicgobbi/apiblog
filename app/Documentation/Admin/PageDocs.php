@@ -22,7 +22,7 @@ use OpenApi\Spec\Type;
     required: ['title', 'body_markdown'],
     properties: [
         'title' => new OA\Schema(type: Type::String, maxLength: 255),
-        'slug' => new OA\Schema(type: Type::String, maxLength: 255, description: 'Opcional; gerado a partir do título e normalizado'),
+        'slug' => new OA\Schema(type: Type::String, maxLength: 255, description: 'Opcional; gerado a partir do título e normalizado. Não pode ser uma rota do front (admin, busca, categorias, posts, tags)'),
         'body_markdown' => new OA\Schema(type: Type::String, maxLength: 200000),
         'is_published' => new OA\Schema(type: Type::Boolean, default: false),
     ],

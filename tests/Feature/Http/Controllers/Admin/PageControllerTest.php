@@ -5,6 +5,7 @@ namespace Tests\Feature\Http\Controllers\Admin;
 use App\Models\Page;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class PageControllerTest extends TestCase
@@ -79,6 +80,79 @@ class PageControllerTest extends TestCase
                 'slug' => 'Já existe uma página com este slug',
                 'is_published' => 'O campo publicado deve ser verdadeiro ou falso',
             ]);
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function reservedSlugs(): array
+    {
+        return [
+            'admin' => ['admin'],
+            'busca com maiúscula' => ['Busca'],
+            'posts com espaços' => [' posts '],
+            'tags' => ['tags'],
+            'categorias' => ['categorias'],
+        ];
+    }
+
+    #[DataProvider('reservedSlugs')]
+    public function test_store_rejects_reserved_slug(string $slug): void
+    {
+        $this->actingAs($this->admin, 'api')
+            ->postJson('/api/admin/pages', ['title' => 'Página', 'slug' => $slug, 'body_markdown' => 'Texto'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['slug' => 'Este endereço é usado pelo blog. Escolha outro slug']);
+
+        $this->assertDatabaseCount('pages', 0);
+    }
+
+    public function test_store_rejects_title_that_generates_reserved_slug(): void
+    {
+        $this->actingAs($this->admin, 'api')
+            ->postJson('/api/admin/pages', ['title' => 'Busca', 'body_markdown' => 'Texto'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['slug' => 'Este endereço é usado pelo blog. Escolha outro slug']);
+    }
+
+    public function test_update_rejects_reserved_slug(): void
+    {
+        $page = Page::factory()->create(['slug' => 'sobre']);
+
+        $this->actingAs($this->admin, 'api')
+            ->putJson("/api/admin/pages/{$page->id}", ['title' => 'Sobre', 'slug' => 'Admin', 'body_markdown' => 'Texto'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['slug']);
+
+        $this->assertSame('sobre', $page->fresh()->slug);
+    }
+
+    public function test_update_with_empty_slug_rejects_title_that_generates_reserved_slug(): void
+    {
+        $page = Page::factory()->create(['slug' => 'sobre']);
+
+        $this->actingAs($this->admin, 'api')
+            ->putJson("/api/admin/pages/{$page->id}", ['title' => 'Posts', 'slug' => null, 'body_markdown' => 'Texto'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['slug']);
+    }
+
+    public function test_update_without_slug_keeps_current_slug_even_if_title_matches_reserved_word(): void
+    {
+        $page = Page::factory()->create(['slug' => 'sobre']);
+
+        $this->actingAs($this->admin, 'api')
+            ->putJson("/api/admin/pages/{$page->id}", ['title' => 'Tags', 'body_markdown' => 'Texto'])
+            ->assertOk()
+            ->assertJsonPath('data.slug', 'sobre');
+    }
+
+    public function test_slugs_that_only_contain_a_reserved_word_are_accepted(): void
+    {
+        $this->actingAs($this->admin, 'api')
+            ->postJson('/api/admin/pages', ['title' => 'Como usar a busca', 'body_markdown' => 'Texto'])
+            ->assertCreated()
+            ->assertJsonPath('data.slug', 'como-usar-a-busca');
     }
 
     public function test_update_can_unpublish_page(): void

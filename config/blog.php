@@ -32,6 +32,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Slugs reservados para páginas
+    |--------------------------------------------------------------------------
+    |
+    | As páginas estáticas ficam na raiz do front (/{slug}). Estes caminhos
+    | são rotas de primeiro nível do blog-front (app.routes.ts) e esconderiam
+    | uma página com o mesmo slug. Inclua aqui toda nova rota de primeiro
+    | nível criada no front.
+    |
+    */
+
+    'reserved_page_slugs' => ['admin', 'busca', 'categorias', 'posts', 'tags'],
+
+    /*
+    |--------------------------------------------------------------------------
     | Identidade do blog
     |--------------------------------------------------------------------------
     |
