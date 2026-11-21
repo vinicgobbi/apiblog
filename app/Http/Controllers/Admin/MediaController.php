@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreMediaRequest;
 use App\Http\Requests\Admin\UpdateMediaRequest;
 use App\Http\Resources\Admin\MediaResource;
 use App\Models\Media;
+use App\Services\ImageSanitizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -26,11 +27,23 @@ class MediaController extends Controller
 
     /**
      * Armazena a imagem com nome aleatório em media/AAAA/MM. O tipo gravado é
-     * o detectado no conteúdo, nunca o declarado pelo cliente.
+     * o detectado no conteúdo, nunca o declarado pelo cliente. Antes de salvar,
+     * os metadados (EXIF com GPS etc.) são removidos.
      */
-    public function store(StoreMediaRequest $request): JsonResponse
+    public function store(StoreMediaRequest $request, ImageSanitizer $sanitizer): JsonResponse
     {
         $file = $request->file('file');
+        $mimeType = $file->getMimeType();
+
+        try {
+            $sanitizer->sanitize($file->getRealPath(), $mimeType);
+        } catch (RuntimeException) {
+            return response()->json([
+                'message' => 'Não foi possível processar a imagem.',
+                'errors' => ['file' => ['Não foi possível processar a imagem. Tente outro arquivo.']],
+            ], 422);
+        }
+
         $path = $file->store('media/'.now()->format('Y/m'), Media::DISK);
 
         if ($path === false) {
@@ -43,8 +56,8 @@ class MediaController extends Controller
             $media = Media::create([
                 'path' => $path,
                 'original_name' => Str::limit($file->getClientOriginalName(), 255, ''),
-                'mime_type' => $file->getMimeType(),
-                'size' => $file->getSize(),
+                'mime_type' => $mimeType,
+                'size' => filesize($file->getRealPath()),
                 'width' => $width,
                 'height' => $height,
                 'alt' => $request->validated('alt'),
