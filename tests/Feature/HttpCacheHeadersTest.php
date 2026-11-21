@@ -30,6 +30,7 @@ class HttpCacheHeadersTest extends TestCase
     public static function publicEndpoints(): array
     {
         return [
+            'status e versão da API' => ['/api'],
             'lista de posts' => ['/api/posts'],
             'post' => ['/api/posts/post-publico'],
             'comentários do post' => ['/api/posts/post-publico/comments'],

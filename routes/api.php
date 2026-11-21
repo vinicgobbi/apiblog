@@ -18,7 +18,7 @@ Route::get('/', function (Request $request) {
         'version' => config('app.version'),
         'documentation' => config('app.url').'/'.config('l5-swagger.documentations.default.routes.api'),
     ]);
-});
+})->middleware(SetPublicCacheHeaders::class)->name('status');
 
 Route::middleware(SetPublicCacheHeaders::class)->group(function () {
     Route::get('posts', [PostController::class, 'index'])->name('posts.index');
