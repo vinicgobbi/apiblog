@@ -26,8 +26,8 @@ use OpenApi\Spec\Type;
         'original_name' => Type::String,
         'mime_type' => new OA\Schema(type: Type::String, example: 'image/png'),
         'size' => new OA\Schema(type: Type::Integer, description: 'Tamanho em bytes'),
-        'width' => new OA\Schema(type: Type::Integer, nullable: true),
-        'height' => new OA\Schema(type: Type::Integer, nullable: true),
+        'width' => new OA\Schema(type: Type::Integer, nullable: true, description: 'Nulo para SVG'),
+        'height' => new OA\Schema(type: Type::Integer, nullable: true, description: 'Nulo para SVG'),
         'alt' => new OA\Schema(type: Type::String, nullable: true),
         'markdown' => new OA\Schema(type: Type::String, description: 'Snippet pronto para o editor', example: '![Pôr do sol](http://localhost:8000/storage/media/2026/11/abc.png)'),
         'created_at' => Format::DateTime,
@@ -60,7 +60,7 @@ final class MediaDocs
     #[OA\Operation\Post(
         path: '/admin/media',
         summary: 'Envia uma imagem',
-        description: 'JPG, PNG, WebP ou GIF (tipo verificado pelo conteúdo), até 5 MB e 8000×8000 pixels. SVG não é aceito.',
+        description: 'JPG, PNG, WebP, GIF ou SVG (tipo verificado pelo conteúdo), até 5 MB e 8000×8000 pixels. Metadados são removidos; SVGs são limpos de scripts, handlers de eventos e referências externas. Para SVG, width e height vêm nulos.',
         tags: ['Admin - Mídia'],
         security: [new Requirement(scheme: 'bearerAuth')],
         requestBody: new OA\RequestBody(

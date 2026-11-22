@@ -110,16 +110,37 @@ class MediaControllerTest extends TestCase
             ->assertJsonPath('data.markdown', fn (string $markdown): bool => str_starts_with($markdown, '![gráfico \[beta\]]('));
     }
 
-    public function test_rejects_svg_with_422(): void
+    public function test_accepts_svg_and_removes_scripts(): void
     {
-        $svg = $this->upload('logo.svg', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
+        $svg = $this->upload('logo.svg', '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" onload="alert(1)"><script>alert(2)</script><rect width="10" height="10" fill="red"/></svg>');
+
+        $this->actingAs($this->admin, 'api')
+            ->postJson('/api/admin/media', ['file' => $svg])
+            ->assertCreated()
+            ->assertJsonPath('data.mime_type', 'image/svg+xml')
+            ->assertJsonPath('data.width', null)
+            ->assertJsonPath('data.height', null);
+
+        $media = Media::sole();
+        $this->assertStringEndsWith('.svg', $media->path);
+        $stored = Storage::disk('public')->get($media->path);
+        $this->assertStringContainsString('<rect', $stored);
+        $this->assertStringNotContainsStringIgnoringCase('script', $stored);
+        $this->assertStringNotContainsStringIgnoringCase('onload', $stored);
+        $this->assertSame(strlen($stored), $media->size);
+    }
+
+    public function test_rejects_malformed_svg_with_422(): void
+    {
+        $svg = $this->upload('quebrado.svg', '<svg xmlns="http://www.w3.org/2000/svg"><rect></svg>');
 
         $this->actingAs($this->admin, 'api')
             ->postJson('/api/admin/media', ['file' => $svg])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['file' => 'A imagem deve ser JPG, PNG, WebP ou GIF']);
+            ->assertJsonValidationErrors(['file' => 'Não foi possível processar a imagem. Tente outro arquivo.']);
 
         $this->assertEmpty(Storage::disk('public')->allFiles());
+        $this->assertDatabaseCount('media', 0);
     }
 
     public function test_rejects_script_disguised_with_image_extension(): void
@@ -129,7 +150,7 @@ class MediaControllerTest extends TestCase
         $this->actingAs($this->admin, 'api')
             ->postJson('/api/admin/media', ['file' => $fake])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['file' => 'A imagem deve ser JPG, PNG, WebP ou GIF']);
+            ->assertJsonValidationErrors(['file' => 'A imagem deve ser JPG, PNG, WebP, GIF ou SVG']);
 
         $this->assertDatabaseCount('media', 0);
     }
