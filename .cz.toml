@@ -8,7 +8,7 @@
 # A versão é exibida em GET /api e no rodapé do blog-front.
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.4.0"
+version = "0.4.1"
 version_scheme = "semver2"
 tag_format = "v$version"
 version_files = ["config/app.php:'version'"]

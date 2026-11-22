@@ -1,3 +1,9 @@
+## v0.4.1 (2026-11-22)
+
+### Fix
+
+- **posts**: converte published_at para o fuso da aplicação
+
 ## v0.4.0 (2026-11-22)
 
 ### Feat
