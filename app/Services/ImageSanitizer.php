@@ -21,6 +21,13 @@ class ImageSanitizer
     private const int WEBP_QUALITY = 90;
 
     /**
+     * O GD usa ~4 bytes por pixel: uma imagem de 8000×8000 (o máximo aceito
+     * em StoreMediaRequest) ocupa ~256 MB, e o imagerotate cria uma segunda
+     * cópia antes de liberar a primeira.
+     */
+    public const string MEMORY_LIMIT = '768M';
+
+    /**
      * Sobrescreve o arquivo com a versão sem metadados.
      *
      * @throws RuntimeException quando a imagem não pode ser decodificada ou gravada.
@@ -31,6 +38,8 @@ class ImageSanitizer
             return;
         }
 
+        $this->raiseMemoryLimit();
+
         $image = $this->decode($path, $mimeType);
 
         if ($mimeType === 'image/jpeg') {
@@ -40,6 +49,21 @@ class ImageSanitizer
         $this->encode($image, $path, $mimeType);
 
         clearstatcache(true, $path);
+    }
+
+    /**
+     * Sobe o memory_limit para MEMORY_LIMIT só nesta requisição, sem reduzir
+     * um limite que já seja maior (ou ilimitado).
+     */
+    private function raiseMemoryLimit(): void
+    {
+        $current = (string) ini_get('memory_limit');
+
+        if ($current === '-1' || ini_parse_quantity($current) >= ini_parse_quantity(self::MEMORY_LIMIT)) {
+            return;
+        }
+
+        ini_set('memory_limit', self::MEMORY_LIMIT);
     }
 
     private function decode(string $path, string $mimeType): GdImage

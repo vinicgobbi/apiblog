@@ -23,3 +23,11 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Limites de upload para o mod_php (PHP 8 registra o módulo como mod_php.c).
+# Acompanha StoreMediaRequest::MAX_SIZE_KB (5 MB) com folga; o post_max_size
+# precisa ser maior que o upload. Exige AllowOverride Options (ou All).
+<IfModule mod_php.c>
+    php_value upload_max_filesize 6M
+    php_value post_max_size 8M
+</IfModule>
