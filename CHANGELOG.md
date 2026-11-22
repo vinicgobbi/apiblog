@@ -1,3 +1,9 @@
+## v0.3.1 (2026-11-22)
+
+### Fix
+
+- **media**: aumenta limites de upload e de memória para imagens
+
 ## v0.3.0 (2026-11-22)
 
 ### Feat
