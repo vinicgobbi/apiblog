@@ -6,6 +6,7 @@ use App\Enums\PostStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Validation\Rule;
 
 /**
@@ -65,7 +66,9 @@ class PostRequest extends FormRequest
     }
 
     /**
-     * Atributos do post. Ao publicar sem data, a publicação é imediata.
+     * Atributos do post. Ao publicar sem data, a publicação é imediata. A data
+     * recebida (ISO 8601 com qualquer offset) é convertida para o fuso da
+     * aplicação, pois o cast datetime grava o horário sem considerar o offset.
      *
      * @return array<string, mixed>
      */
@@ -75,6 +78,8 @@ class PostRequest extends FormRequest
 
         if ($attributes['status'] === PostStatus::Published->value && empty($attributes['published_at'])) {
             $attributes['published_at'] = now();
+        } elseif (! empty($attributes['published_at'])) {
+            $attributes['published_at'] = Date::parse($attributes['published_at'])->setTimezone(config('app.timezone'));
         }
 
         return $attributes;
