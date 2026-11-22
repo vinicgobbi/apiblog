@@ -9,15 +9,14 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 class PageController extends Controller
 {
     /**
-     * Páginas publicadas, sem o corpo, na ordem de criação. Usado no menu do blog.
+     * Páginas publicadas, sem o corpo, na ordem definida no admin. Usado no menu do blog.
      */
     public function index(): AnonymousResourceCollection
     {
         $pages = Page::query()
             ->published()
             ->select(['id', 'title', 'slug', 'icon'])
-            ->orderBy('created_at')
-            ->orderBy('id')
+            ->ordered()
             ->get();
 
         return PageResource::collection($pages);

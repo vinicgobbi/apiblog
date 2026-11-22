@@ -18,6 +18,17 @@ class Page extends Model
     use HasFactory, HasSlug, RendersMarkdown;
 
     /**
+     * Página nova entra no fim do menu. A posição não é preenchível em massa:
+     * só muda pela reordenação (PUT /admin/pages/order).
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (Page $page): void {
+            $page->position ??= (int) static::query()->max('position') + 1;
+        });
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -26,6 +37,7 @@ class Page extends Model
     {
         return [
             'is_published' => 'boolean',
+            'position' => 'integer',
         ];
     }
 
@@ -36,6 +48,17 @@ class Page extends Model
     protected function published(Builder $query): void
     {
         $query->where('is_published', true);
+    }
+
+    /**
+     * Ordem do menu do blog, definida no admin.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function ordered(Builder $query): void
+    {
+        $query->orderBy('position')->orderBy('id');
     }
 
     protected function slugSourceAttribute(): string
