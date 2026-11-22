@@ -105,6 +105,37 @@ class ImageSanitizerTest extends TestCase
         $this->assertSame($gif, file_get_contents($path));
     }
 
+    public function test_removes_scripts_event_handlers_and_external_references_from_svg(): void
+    {
+        $path = $this->tempFile(<<<'SVG'
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 10 10" onload="alert(1)">
+                <script>alert(2)</script>
+                <a xlink:href="javascript:alert(3)"><circle cx="5" cy="5" r="4" fill="blue" onclick="alert(4)"/></a>
+                <image href="https://exemplo.com/rastreio.png" width="1" height="1"/>
+                <foreignObject><iframe src="https://exemplo.com"></iframe></foreignObject>
+            </svg>
+            SVG);
+
+        $this->sanitizer->sanitize($path, 'image/svg+xml');
+
+        $content = (string) file_get_contents($path);
+        $this->assertStringContainsString('<circle', $content);
+        $this->assertStringContainsString('fill="blue"', $content);
+
+        foreach (['script', 'onload', 'onclick', 'javascript:', 'exemplo.com', 'foreignObject', 'iframe'] as $forbidden) {
+            $this->assertStringNotContainsStringIgnoringCase($forbidden, $content);
+        }
+    }
+
+    public function test_throws_when_svg_is_not_valid_xml(): void
+    {
+        $path = $this->tempFile('<svg xmlns="http://www.w3.org/2000/svg"><rect></svg>');
+
+        $this->expectException(RuntimeException::class);
+
+        $this->sanitizer->sanitize($path, 'image/svg+xml');
+    }
+
     public function test_throws_when_image_cannot_be_decoded(): void
     {
         $path = $this->tempFile("\xFF\xD8\xFF\xE0corrompido");

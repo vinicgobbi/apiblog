@@ -31,3 +31,12 @@
     php_value upload_max_filesize 6M
     php_value post_max_size 8M
 </IfModule>
+
+# SVGs enviados são limpos no upload (ImageSanitizer); por garantia, scripts
+# ficam bloqueados se o arquivo for aberto direto no navegador. Exige mod_headers.
+<IfModule mod_headers.c>
+    <FilesMatch "\.svg$">
+        Header set Content-Security-Policy "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox"
+        Header set X-Content-Type-Options "nosniff"
+    </FilesMatch>
+</IfModule>

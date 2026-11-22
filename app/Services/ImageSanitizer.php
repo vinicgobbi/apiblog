@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use enshrined\svgSanitize\Sanitizer as SvgSanitizer;
 use GdImage;
 use RuntimeException;
 
@@ -13,6 +14,10 @@ use RuntimeException;
  * metadado. Antes disso, a orientação EXIF é aplicada aos pixels, para que
  * fotos de celular não fiquem giradas. GIFs não são tocados: não têm EXIF e
  * o GD perderia a animação.
+ *
+ * SVGs passam por uma lista de tags e atributos permitidos, que remove
+ * scripts, handlers de eventos (onload etc.), links javascript: e referências
+ * a recursos externos, além de metadados como <metadata>.
  */
 class ImageSanitizer
 {
@@ -34,6 +39,12 @@ class ImageSanitizer
      */
     public function sanitize(string $path, string $mimeType): void
     {
+        if ($mimeType === 'image/svg+xml') {
+            $this->sanitizeSvg($path);
+
+            return;
+        }
+
         if (! in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'], true)) {
             return;
         }
@@ -47,6 +58,29 @@ class ImageSanitizer
         }
 
         $this->encode($image, $path, $mimeType);
+
+        clearstatcache(true, $path);
+    }
+
+    /**
+     * Regrava o SVG só com tags e atributos seguros.
+     *
+     * @throws RuntimeException quando o arquivo não é um XML válido.
+     */
+    private function sanitizeSvg(string $path): void
+    {
+        $sanitizer = new SvgSanitizer;
+        $sanitizer->removeRemoteReferences(true);
+
+        $clean = $sanitizer->sanitize((string) file_get_contents($path));
+
+        if ($clean === false || $clean === '') {
+            throw new RuntimeException('Não foi possível ler o SVG.');
+        }
+
+        if (file_put_contents($path, $clean) === false) {
+            throw new RuntimeException('Não foi possível gravar o SVG.');
+        }
 
         clearstatcache(true, $path);
     }

@@ -23,8 +23,9 @@ class StoreMediaRequest extends FormRequest
      * Get the validation rules that apply to the request.
      *
      * O tipo é verificado pelo conteúdo do arquivo (não pela extensão enviada).
-     * SVG não é aceito, pois pode conter scripts. O limite de dimensões evita
-     * imagens que consomem memória demais ao serem processadas.
+     * SVGs são aceitos e limpos de scripts no upload (ver ImageSanitizer). O
+     * limite de dimensões evita imagens que consomem memória demais ao serem
+     * processadas (não se aplica a SVG, que é vetorial).
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -34,7 +35,7 @@ class StoreMediaRequest extends FormRequest
             'file' => [
                 'required',
                 'file',
-                'mimes:jpg,jpeg,png,webp,gif',
+                'mimes:jpg,jpeg,png,webp,gif,svg',
                 'max:'.self::MAX_SIZE_KB,
                 'dimensions:max_width='.self::MAX_DIMENSION.',max_height='.self::MAX_DIMENSION,
             ],
@@ -50,7 +51,7 @@ class StoreMediaRequest extends FormRequest
         return [
             'file.required' => 'Selecione uma imagem',
             'file.file' => 'O envio da imagem falhou',
-            'file.mimes' => 'A imagem deve ser JPG, PNG, WebP ou GIF',
+            'file.mimes' => 'A imagem deve ser JPG, PNG, WebP, GIF ou SVG',
             'file.max' => 'A imagem pode ter no máximo 5 MB',
             'file.dimensions' => 'A imagem pode ter no máximo '.self::MAX_DIMENSION.'×'.self::MAX_DIMENSION.' pixels',
             'alt.max' => 'O texto alternativo pode ter no máximo :max caracteres',
