@@ -30,20 +30,84 @@ class PageControllerTest extends TestCase
         $this->getJson("/api/admin/pages/{$page->id}")->assertUnauthorized();
         $this->putJson("/api/admin/pages/{$page->id}", [])->assertUnauthorized();
         $this->deleteJson("/api/admin/pages/{$page->id}")->assertUnauthorized();
+        $this->putJson('/api/admin/pages/order', ['ids' => [$page->id]])->assertUnauthorized();
     }
 
-    public function test_index_lists_published_and_unpublished_pages_without_body(): void
+    public function test_index_lists_published_and_unpublished_pages_in_menu_order_without_body(): void
     {
-        $draft = Page::factory()->create(['title' => 'Contato']);
-        $published = Page::factory()->published()->create(['title' => 'Sobre']);
+        $published = Page::factory()->published()->create(['title' => 'Sobre', 'position' => 2]);
+        $draft = Page::factory()->create(['title' => 'Contato', 'position' => 1]);
 
         $this->actingAs($this->admin, 'api')
             ->getJson('/api/admin/pages')
             ->assertOk()
             ->assertJsonPath('data.*.id', [$draft->id, $published->id])
+            ->assertJsonPath('data.*.position', [1, 2])
             ->assertJsonPath('data.*.is_published', [false, true])
             ->assertJsonPath('data.*.icon', [$draft->icon, $published->icon])
             ->assertJsonMissingPath('data.0.body_markdown');
+    }
+
+    public function test_reorder_sets_the_menu_order_without_touching_updated_at(): void
+    {
+        [$about, $contact, $projects] = Page::factory()->count(3)->create(['updated_at' => now()->subWeek()]);
+        $updatedAt = $about->fresh()->updated_at;
+
+        $this->actingAs($this->admin, 'api')
+            ->putJson('/api/admin/pages/order', ['ids' => [$projects->id, $about->id, $contact->id]])
+            ->assertOk()
+            ->assertJsonPath('data.*.id', [$projects->id, $about->id, $contact->id])
+            ->assertJsonPath('data.*.position', [1, 2, 3]);
+
+        $this->assertSame(2, $about->fresh()->position);
+        $this->assertEquals($updatedAt, $about->fresh()->updated_at);
+    }
+
+    public function test_update_keeps_the_page_position(): void
+    {
+        Page::factory()->create();
+        $page = Page::factory()->create();
+
+        $this->actingAs($this->admin, 'api')
+            ->putJson("/api/admin/pages/{$page->id}", [
+                'title' => 'Novo título',
+                'icon' => 'person',
+                'body_markdown' => 'Texto',
+                'position' => 1,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.position', 2);
+    }
+
+    /**
+     * @return array<string, array{0: callable(list<int>): mixed, 1: string}>
+     */
+    public static function invalidOrderProvider(): array
+    {
+        return [
+            'sem ids' => [fn (array $ids) => null, 'ids'],
+            'lista vazia' => [fn (array $ids) => [], 'ids'],
+            'faltando uma página' => [fn (array $ids) => array_slice($ids, 0, 1), 'ids'],
+            'página inexistente' => [fn (array $ids) => [...$ids, 999], 'ids'],
+            'página repetida' => [fn (array $ids) => [$ids[0], $ids[0], $ids[1]], 'ids.1'],
+            'id não numérico' => [fn (array $ids) => ['abc', $ids[1]], 'ids.0'],
+        ];
+    }
+
+    /**
+     * @param  callable(list<int>): mixed  $ids
+     */
+    #[DataProvider('invalidOrderProvider')]
+    public function test_reorder_rejects_a_list_that_does_not_match_the_pages(callable $ids, string $errorKey): void
+    {
+        $pages = Page::factory()->count(2)->create();
+
+        $this->actingAs($this->admin, 'api')
+            ->putJson('/api/admin/pages/order', ['ids' => $ids($pages->modelKeys())])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrorFor($errorKey);
+
+        $this->assertEquals([1, 2], $pages->map->fresh()->pluck('position')->all());
     }
 
     public function test_show_returns_unpublished_page_with_markdown(): void

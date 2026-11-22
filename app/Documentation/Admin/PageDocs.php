@@ -36,6 +36,7 @@ use OpenApi\Spec\Type;
         'title' => Type::String,
         'slug' => Type::String,
         'icon' => Type::String,
+        'position' => new OA\Schema(type: Type::Integer, description: 'Posição no menu do blog (1 = primeira); muda só por PUT /admin/pages/order'),
         'body_markdown' => Type::String,
         'body_html' => Type::String,
         'is_published' => Type::Boolean,
@@ -53,13 +54,38 @@ final class PageDocs
         responses: [
             new OA\Response(
                 response: 200,
-                description: 'Páginas em ordem alfabética, sem o corpo',
+                description: 'Páginas na ordem do menu do blog, sem o corpo',
                 content: new Json(properties: ['data' => new OA\Schema(type: Type::Array, items: new OA\Schema(ref: '#/components/schemas/AdminPage'))]),
             ),
             new OA\Response(response: 401, description: 'Não autenticado'),
         ],
     )]
     public function index(): void {}
+
+    #[OA\Operation\Put(
+        path: '/admin/pages/order',
+        summary: 'Define a ordem das páginas no menu do blog',
+        description: 'Recebe os ids de todas as páginas (publicadas ou não), cada um uma vez, na nova ordem. Não altera o updated_at das páginas.',
+        tags: ['Admin - Páginas'],
+        security: [new Requirement(scheme: 'bearerAuth')],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new Json(
+                required: ['ids'],
+                properties: ['ids' => new OA\Schema(type: Type::Array, items: new OA\Schema(type: Type::Integer), example: [3, 1, 2])],
+            ),
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Páginas na nova ordem, sem o corpo',
+                content: new Json(properties: ['data' => new OA\Schema(type: Type::Array, items: new OA\Schema(ref: '#/components/schemas/AdminPage'))]),
+            ),
+            new OA\Response(response: 401, description: 'Não autenticado'),
+            new OA\Response(response: 422, description: 'Lista inválida, com ids repetidos ou diferente das páginas existentes'),
+        ],
+    )]
+    public function reorder(): void {}
 
     #[OA\Operation\Post(
         path: '/admin/pages',

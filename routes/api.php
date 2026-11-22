@@ -61,6 +61,7 @@ Route::middleware(['auth:api', 'cache.headers:no_store;private'])
         Route::apiResource('posts', Admin\PostController::class);
         Route::apiResource('categories', Admin\CategoryController::class);
         Route::apiResource('tags', Admin\TagController::class);
+        Route::put('pages/order', [Admin\PageController::class, 'reorder'])->name('pages.reorder');
         Route::apiResource('pages', Admin\PageController::class);
         Route::apiResource('media', Admin\MediaController::class)->parameters(['media' => 'media']);
         Route::get('comments/counts', [Admin\CommentController::class, 'counts'])->name('comments.counts');

@@ -36,7 +36,7 @@ final class PageDocs
         responses: [
             new OA\Response(
                 response: 200,
-                description: 'Páginas publicadas em ordem de criação, sem o corpo',
+                description: 'Páginas publicadas na ordem definida no admin, sem o corpo',
                 content: new Json(properties: ['data' => new OA\Schema(type: Type::Array, items: new OA\Schema(ref: '#/components/schemas/Page'))]),
             ),
         ],
