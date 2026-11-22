@@ -13,6 +13,7 @@
         "ext-exif": "*",
         "ext-gd": "*",
         "darkaonline/l5-swagger": "^11.0",
+        "enshrined/svg-sanitize": "^1.1",
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
         "tymon/jwt-auth": "^2.3"
