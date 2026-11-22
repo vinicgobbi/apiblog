@@ -10,11 +10,11 @@ class PageControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_index_lists_only_published_pages_in_creation_order_without_body(): void
+    public function test_index_lists_only_published_pages_in_menu_order_without_body(): void
     {
-        $contact = Page::factory()->published()->create(['title' => 'Contato', 'slug' => 'contato', 'icon' => 'envelope', 'created_at' => now()->subDay()]);
-        Page::factory()->create(['title' => 'Rascunho']);
-        $about = Page::factory()->published()->create(['title' => 'Sobre', 'slug' => 'sobre', 'icon' => 'person']);
+        $about = Page::factory()->published()->create(['title' => 'Sobre', 'slug' => 'sobre', 'icon' => 'person', 'position' => 3]);
+        Page::factory()->create(['title' => 'Rascunho', 'position' => 1]);
+        $contact = Page::factory()->published()->create(['title' => 'Contato', 'slug' => 'contato', 'icon' => 'envelope', 'position' => 2]);
 
         $this->getJson('/api/pages')
             ->assertOk()
