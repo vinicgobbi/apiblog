@@ -114,6 +114,31 @@ class ImageSanitizerTest extends TestCase
         $this->sanitizer->sanitize($path, 'image/jpeg');
     }
 
+    public function test_raises_memory_limit_before_processing(): void
+    {
+        $this->withMemoryLimit('128M');
+
+        $this->sanitizer->sanitize($this->tempFile($this->pngWithTextChunks()), 'image/png');
+
+        $this->assertSame(ImageSanitizer::MEMORY_LIMIT, ini_get('memory_limit'));
+    }
+
+    public function test_does_not_lower_a_higher_memory_limit(): void
+    {
+        $this->withMemoryLimit('1G');
+
+        $this->sanitizer->sanitize($this->tempFile($this->pngWithTextChunks()), 'image/png');
+
+        $this->assertSame('1G', ini_get('memory_limit'));
+    }
+
+    private function withMemoryLimit(string $limit): void
+    {
+        $original = (string) ini_get('memory_limit');
+        ini_set('memory_limit', $limit);
+        $this->beforeApplicationDestroyed(fn () => ini_set('memory_limit', $original));
+    }
+
     private function tempFile(string $content): string
     {
         $path = (string) tempnam(sys_get_temp_dir(), 'img');
