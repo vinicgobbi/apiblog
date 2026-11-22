@@ -136,6 +136,24 @@ class PostControllerTest extends TestCase
         $this->getJson('/api/posts/futuro')->assertNotFound();
     }
 
+    public function test_published_at_sent_in_utc_is_converted_to_the_app_timezone(): void
+    {
+        config(['app.timezone' => 'America/Sao_Paulo']);
+        date_default_timezone_set('America/Sao_Paulo');
+
+        $this->actingAs($this->admin, 'api')
+            ->postJson('/api/admin/posts', [
+                'title' => 'Fuso',
+                'body_markdown' => 'Texto',
+                'status' => 'published',
+                'published_at' => '2026-11-12T02:24:00.000Z',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.published_at', '2026-11-11T23:24:00-03:00');
+
+        $this->assertSame('2026-11-11 23:24:00', Post::sole()->getRawOriginal('published_at'));
+    }
+
     public function test_store_attaches_existing_tags_and_creates_new_ones_by_name(): void
     {
         $existing = Tag::factory()->create(['name' => 'PHP', 'slug' => 'php']);
