@@ -1,3 +1,9 @@
+## v0.3.0 (2026-11-22)
+
+### Feat
+
+- **pages**: adiciona ordenação das páginas no menu
+
 ## v0.2.0 (2026-11-21)
 
 ### Feat
