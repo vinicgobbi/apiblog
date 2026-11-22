@@ -1,3 +1,9 @@
+## v0.4.0 (2026-11-22)
+
+### Feat
+
+- **media**: aceita imagens SVG no upload
+
 ## v0.3.1 (2026-11-22)
 
 ### Fix
